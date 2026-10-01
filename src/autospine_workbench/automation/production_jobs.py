@@ -18,6 +18,7 @@ class ProductionJobs:
         self._lock = RLock()
         self._stop = Event()
         self._active = set()
+        self._active_lock = RLock()
         self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='production')
 
     def submit(self, body):
@@ -43,41 +44,49 @@ class ProductionJobs:
         self.driver.validate(request)
         with self._lock:
             self._require_open()
-            folder = self.journal.folder(run_id, create=True)
-            if folder.exists() and any(folder.glob('revision-*.json')):
-                run = self.journal.read(run_id)
-                if run['request'] != request:
-                    raise PipelineRunError('production_reserved_request_conflict')
-            else:
-                run = self.journal.create(request, run_id=run_id)
+            # Do not expose an empty reservation directory to concurrent list reads.
+            with self.journal._lock:
+                folder = self.journal.folder(run_id, create=True)
+                if any(folder.glob('revision-*.json')):
+                    run = self.journal.read(run_id)
+                    if run['request'] != request:
+                        raise PipelineRunError('production_reserved_request_conflict')
+                else:
+                    run = self.journal.create(request, run_id=run_id)
             if run['status'] in ACTIVE | {'needs_review', 'stage_accepted'}:
                 self._schedule(run_id)
             return run
 
     def is_active(self, run_id):
-        with self._lock:
+        with self._active_lock:
             return run_id in self._active
 
     def _schedule(self, run_id):
-        self._require_open()
-        if run_id not in self._active:
-            if len(self._active) >= 8:
-                raise PipelineRunError('pipeline_queue_full')
-            self._active.add(run_id)
-            self._pool.submit(self._execute, run_id)
+        # Mutation coordination always precedes the short live-ownership lock.
+        with self._lock:
+            self._require_open()
+            with self._active_lock:
+                if run_id not in self._active:
+                    if len(self._active) >= 8:
+                        raise PipelineRunError('pipeline_queue_full')
+                    self._active.add(run_id)
+                    try:
+                        self._pool.submit(self._execute, run_id)
+                    except BaseException:
+                        self._active.discard(run_id)
+                        raise
 
     def get(self, run_id):
-        with self._lock:
-            return self.journal.read(run_id)
+        return self.journal.read(run_id)
 
     def execution_view(self, value):
         """Attach live ownership to an HTTP snapshot, never to its journal."""
-        with self._lock:
-            result = deepcopy(value)
+        result = deepcopy(value)
+        with self._active_lock:
             result['execution_active'] = (
                 not self._stop.is_set() and result['run_id'] in self._active
             )
-            return result
+        return result
 
     def retry(self, run_id, revision):
         """Retain failed attempts; only clear the failed stage and its dependants."""
@@ -85,7 +94,7 @@ class ProductionJobs:
             value = self.journal.read(run_id)
             if type(revision) is not int or value['revision'] != revision:
                 raise PipelineRunError('production_revision_conflict')
-            if run_id in self._active or value['status'] != 'blocked':
+            if self.is_active(run_id) or value['status'] != 'blocked':
                 raise PipelineRunError('production_retry_not_available')
             self.driver.validate(value['request'])
             for stage in ('source', 'bindings', 'sleeves', 'character', 'body', 'joint'):
@@ -108,8 +117,7 @@ class ProductionJobs:
             return value
 
     def list(self):
-        with self._lock:
-            return self.journal.list()
+        return self.journal.list()
 
     def revise(self, run_id, revision, joint_config=None, body_options=None, expected_plan_sha256=None, body_registration=None):
         with self._lock:
@@ -117,7 +125,7 @@ class ProductionJobs:
             previous = self.journal.read(run_id)
             if type(revision) is not int or previous['revision'] != revision:
                 raise PipelineRunError('production_revision_conflict')
-            if run_id in self._active:
+            if self.is_active(run_id):
                 raise PipelineRunError('production_revision_wait_for_current_run')
             from .production_revision import plan
             preview=plan(self,run_id,revision,joint_config,body_options,body_registration)
@@ -223,7 +231,7 @@ class ProductionJobs:
             if exc.reason_code != 'pipeline_run_busy':
                 self._write(run_id, lambda v: v.update(status='blocked', reason_code=exc.reason_code), 'blocked')
         finally:
-            with self._lock:
+            with self._active_lock:
                 self._active.discard(run_id)
 
     def _execute_owned(self, run_id):

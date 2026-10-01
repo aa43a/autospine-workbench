@@ -1,11 +1,13 @@
 """Exercise recovery at dispatch boundaries and independent visual acceptance."""
 from copy import deepcopy
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from threading import Event
+from threading import Event, Thread
 import time
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from autospine_workbench.automation.production_jobs import ProductionJobs
 from autospine_workbench.automation.production_submission import child_id, reserved_child
@@ -70,9 +72,8 @@ class ProductionTests(unittest.TestCase):
     def wait(self, run_id):
         limit = time.monotonic() + 3
         while time.monotonic() < limit:
-            with self.manager._lock:
-                if run_id not in self.manager._active:
-                    return self.manager.get(run_id)
+            if not self.manager.is_active(run_id):
+                return self.manager.get(run_id)
             time.sleep(.01)
         self.fail('coordinator did not finish')
 
@@ -92,13 +93,174 @@ class ProductionTests(unittest.TestCase):
         value['status'] = 'running'
         value = self.manager.journal.append(value, 'execution_started')
         self.assertFalse(self.manager.execution_view(value)['execution_active'])
-        self.manager._active.add(value['run_id'])
+        with self.manager._active_lock:
+            self.manager._active.add(value['run_id'])
         self.assertTrue(self.manager.execution_view(value)['execution_active'])
         self.assertNotIn('execution_active', self.manager.get(value['run_id']))
         self.manager._stop.set()
         self.assertFalse(self.manager.execution_view(value)['execution_active'])
         self.assertEqual(self.manager.journal.read(value['run_id']), value)
-        self.manager._active.clear()
+        with self.manager._active_lock:
+            self.manager._active.clear()
+
+    def test_status_reads_finish_while_joint_submission_is_blocked(self):
+        from autospine_workbench.automation.production_routes import dispatch_production
+        entered, release = Event(), Event()
+        original_submit = self.driver.submit
+
+        def blocked_submit(stage, run, job):
+            if stage == 'joint':
+                entered.set()
+                if not release.wait(3):
+                    raise RuntimeError('test submission was not released')
+            return original_submit(stage, run, job)
+
+        self.driver.submit = blocked_submit
+        readers = ThreadPoolExecutor(max_workers=6)
+
+        def read_route(tail):
+            handler = SimpleNamespace(headers={}, server=object(),
+                                      _send_visual_json=Mock(), _send_bytes=Mock())
+            self.assertTrue(dispatch_production(['api', 'production', *tail], handler, 'GET'))
+            return handler._send_visual_json.call_args.args
+
+        try:
+            run_id = self.manager.submit(self.request)['run_id']
+            self.assertTrue(entered.wait(2))
+            with patch('autospine_workbench.automation.production_routes.manager_for',
+                       return_value=self.manager):
+                futures = [
+                    readers.submit(self.manager.get, run_id),
+                    readers.submit(self.manager.list),
+                    readers.submit(lambda: self.manager.execution_view(self.manager.get(run_id))),
+                    readers.submit(self.manager.is_active, run_id),
+                    readers.submit(read_route, [run_id]),
+                    readers.submit(read_route, []),
+                ]
+                snapshot, rows, view, active, single_route, list_route = [
+                    future.result(timeout=.5) for future in futures]
+            self.assertFalse(release.is_set())
+            self.assertEqual(snapshot['event'], 'joint_reserved')
+            self.assertEqual(snapshot['stages']['joint']['status'], 'pending')
+            self.assertEqual(rows, [snapshot])
+            self.assertTrue(active)
+            self.assertTrue(view['execution_active'])
+            self.assertNotIn('execution_active', snapshot)
+            self.assertEqual(snapshot['authority'], 'none')
+            self.assertFalse(snapshot['production_authorized'])
+            self.assertEqual(snapshot['stages']['review']['status'], 'pending')
+            self.assertEqual(single_route, (200, view))
+            self.assertEqual(list_route, (200, dict(runs=[view])))
+            view['stages']['joint']['status'] = 'accepted'
+            self.assertEqual(self.manager.get(run_id), snapshot)
+        finally:
+            release.set()
+            readers.shutdown(wait=True)
+        original = self.wait(run_id)
+        self.assertEqual(original['status'], 'needs_review')
+        self.assertEqual([stage for stage, _ in self.driver.calls], ['body', 'joint'])
+        revised = self.wait(self.manager.revise(run_id, original['revision'],
+                            {'hair': {'enabled': True}})['run_id'])
+        self.assertEqual(revised['status'], 'needs_review')
+        self.assertFalse(revised['production_authorized'])
+        self.assertEqual(revised['stages']['body']['job_id'], original['stages']['body']['job_id'])
+        self.assertNotEqual(revised['stages']['joint']['job_id'], original['stages']['joint']['job_id'])
+        self.assertEqual([stage for stage, _ in self.driver.calls], ['body', 'joint', 'joint'])
+        self.assertEqual(self.manager.get(run_id), original)
+
+    def test_cancel_waits_for_dispatch_then_stops_the_reserved_child(self):
+        entered, release, cancel_started, cancel_finished = Event(), Event(), Event(), Event()
+        original_submit, original_write = self.driver.submit, self.manager._write
+        failures = []
+
+        def blocked_submit(stage, run, job):
+            entered.set()
+            if not release.wait(3):
+                raise RuntimeError('test submission was not released')
+            return original_submit(stage, run, job)
+
+        def observing_after_cancel(run_id, change, event):
+            if event == 'body_observing' and not cancel_finished.wait(2):
+                raise RuntimeError('test cancellation did not finish')
+            return original_write(run_id, change, event)
+
+        self.driver.submit = blocked_submit
+        self.manager._write = observing_after_cancel
+        canceler = None
+        try:
+            run_id = self.manager.submit(self.request)['run_id']
+            self.assertTrue(entered.wait(2))
+            reserved = self.manager.get(run_id)
+
+            def cancel():
+                cancel_started.set()
+                try:
+                    self.manager.cancel(run_id, reserved['revision'])
+                except BaseException as exc:
+                    failures.append(exc)
+                finally:
+                    cancel_finished.set()
+
+            canceler = Thread(target=cancel)
+            canceler.start()
+            self.assertTrue(cancel_started.wait(1))
+            self.assertFalse(cancel_finished.wait(.05))
+            self.assertEqual(self.manager.get(run_id), reserved)
+        finally:
+            release.set()
+            if canceler is not None:
+                canceler.join(2)
+        self.assertTrue(cancel_finished.is_set())
+        self.assertEqual(failures, [])
+        result = self.wait(run_id)
+        self.assertEqual(result['status'], 'canceled')
+        self.assertEqual([stage for stage, _ in self.driver.calls], ['body'])
+        self.assertEqual(self.driver.jobs[reserved['stages']['body']['job_id']]['status'], 'canceled')
+        with self.assertRaisesRegex(PipelineRunError, 'production_revision_conflict'):
+            self.manager.cancel(run_id, reserved['revision'])
+        with self.assertRaisesRegex(PipelineRunError, 'production_canceled'):
+            self.manager.resume(run_id, result['revision'])
+
+    def test_close_keeps_status_reads_available_and_prevents_following_dispatch(self):
+        entered, release, close_finished = Event(), Event(), Event()
+        original_submit = self.driver.submit
+
+        def blocked_submit(stage, run, job):
+            entered.set()
+            if not release.wait(3):
+                raise RuntimeError('test submission was not released')
+            return original_submit(stage, run, job)
+
+        self.driver.submit = blocked_submit
+        closer = None
+        try:
+            run_id = self.manager.submit(self.request)['run_id']
+            self.assertTrue(entered.wait(2))
+
+            def close():
+                try:
+                    self.manager.close()
+                finally:
+                    close_finished.set()
+
+            closer = Thread(target=close)
+            closer.start()
+            self.assertTrue(self.manager._stop.wait(1))
+            self.assertFalse(close_finished.is_set())
+            snapshot = self.manager.get(run_id)
+            self.assertEqual(self.manager.list(), [snapshot])
+            self.assertTrue(self.manager.is_active(run_id))
+            self.assertFalse(self.manager.execution_view(snapshot)['execution_active'])
+        finally:
+            release.set()
+            if closer is not None:
+                closer.join(2)
+        self.assertTrue(close_finished.is_set())
+        self.assertFalse(self.manager.is_active(run_id))
+        self.assertEqual([stage for stage, _ in self.driver.calls], ['body'])
+        self.assertEqual(self.manager.get(run_id)['event'], 'body_reserved')
+        with self.assertRaisesRegex(PipelineRunError, 'pipeline_manager_closed'):
+            self.manager.submit(self.request)
 
     def test_cancel_preserves_shared_sleeve_dependency(self):
         for shared in (True, False):
@@ -257,6 +419,62 @@ class ProductionTests(unittest.TestCase):
         self.assertEqual(original['run_id'],repeated['run_id'])
         self.assertEqual([s for s,_ in self.driver.calls],['joint'])
         self.assertEqual(repeated['status'],'needs_review')
+
+    def test_direct_journal_create_is_not_visible_before_its_first_revision(self):
+        from autospine_workbench.automation.production_journal import publish_document
+        entered, release, list_started = Event(), Event(), Event()
+        workers = ThreadPoolExecutor(max_workers=2)
+
+        def held_publish(*args, **kwargs):
+            entered.set()
+            if not release.wait(3):
+                raise RuntimeError('test publication was not released')
+            return publish_document(*args, **kwargs)
+
+        def list_runs():
+            list_started.set()
+            return self.manager.list()
+
+        try:
+            with patch('autospine_workbench.automation.production_journal.publish_document',
+                       side_effect=held_publish):
+                created = workers.submit(self.manager.journal.create, self.request)
+                self.assertTrue(entered.wait(2))
+                listing = workers.submit(list_runs)
+                self.assertTrue(list_started.wait(1))
+                time.sleep(.05)
+                self.assertFalse(listing.done())
+                release.set()
+                value = created.result(timeout=1)
+                self.assertEqual(listing.result(timeout=1), [value])
+        finally:
+            release.set()
+            workers.shutdown(wait=True)
+        self.assertEqual(value['revision'], 1)
+        self.assertEqual(value['authority'], 'none')
+        self.assertFalse(value['production_authorized'])
+
+    def test_direct_journal_appends_keep_optimistic_revision_conflicts(self):
+        value = self.manager.journal.create(self.request)
+        workers = ThreadPoolExecutor(max_workers=2)
+        try:
+            attempts = [workers.submit(self.manager.journal.append, value, event)
+                        for event in ('first_update', 'second_update')]
+            results, errors = [], []
+            for attempt in attempts:
+                try:
+                    results.append(attempt.result(timeout=1))
+                except PipelineRunError as exc:
+                    errors.append(exc.reason_code)
+        finally:
+            workers.shutdown(wait=True)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(errors, ['production_revision_conflict'])
+        self.assertEqual(results[0]['revision'], value['revision'] + 1)
+        self.assertEqual(self.manager.get(value['run_id']), results[0])
+        self.assertEqual(value['revision'], 1)
+        self.assertEqual(value['event'], 'created')
+        self.assertFalse(results[0]['production_authorized'])
 
 
 if __name__ == '__main__':
