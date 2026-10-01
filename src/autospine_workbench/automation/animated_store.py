@@ -69,19 +69,8 @@ class AnimatedStore:
     def read(self, digest):
         require_sha256(digest, "Animated bundle")
         folder = directory(self.root / digest)
-        inventory = read_document(folder / "inventory.json")
-        if canonical_sha256(inventory) != digest or not 0 < len(inventory) <= 1024:
-            raise PipelineRunError("pipeline_artifact_invalid")
-        files, size = {}, 0
-        for name, expected in inventory.items():
-            safe_file(name)
-            directory((folder / name).parent)
-            raw = read_real_file(folder / name, MAX_FILE, "animated bundle")
-            size += len(raw)
-            if hashlib.sha256(raw).hexdigest() != expected or size > MAX_TOTAL:
-                raise PipelineRunError("pipeline_artifact_invalid")
-            files[name] = raw
-        return files
+        from ._animated_read_cohort import read_verified
+        return read_verified(folder, digest, max_file=MAX_FILE, max_total=MAX_TOTAL)
 
     def read_file(self, digest, name):
         """Verify the addressed inventory and requested file, without N full ZIP reads."""
