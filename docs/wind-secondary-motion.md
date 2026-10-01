@@ -57,6 +57,18 @@
 
 现有 `POST /api/motions/<body-job>/joint-animation` 使用这一配置，继续创建独立候选。`joint-animation.json` 保存风场证据及预览文件哈希。新增 `wind-preview.json` 保存来源矩阵、辅助骨、区域和保护比例，绑定父级骨架、最终骨架及配置哈希。接口只允许从指定任务的已验证候选读取该文件，前端再次核验哈希；资源失败会显示原因并保留实际导出姿态。
 
+### 独立桌面客户端的草稿预览
+
+`POST /api/motions/<joint-job>/wind-preview` 只计算已完成联合候选的辅助骨轨迹，不创建任务、不改草稿、候选、下载或验收数据。它复用引擎的 `joint_wind`、`joint_spring` 与级联姿态函数；独立客户端只查表、应用辅助骨旋转，无需复制求解算法或执行引擎提供的 JavaScript。
+
+请求必须准确包含 `schema: "autospine.wind-preview-request/v1"`、`artifact_sha256`、`skeleton_sha256`、`parent_skeleton_sha256`、`config_sha256`、`wind_preview_sha256`、`config` 和布尔值 `no_wind`。前五个哈希绑定已构建候选；`config_sha256` 指已构建配置，`config` 是当前完整草稿配置。可选的 `request_id` 为 0–9007199254740991 的整数，用于忽略过期异步响应。禁止其他字段；请求上限 128,000 字节。此计算入口仍要求现有同源与 `pipeline-preview` intent 校验。
+
+成功响应为 HTTP 200，`schema: "autospine.wind-preview-result/v1"`，回显任务、上述五个哈希以及已提供的 `request_id`。`preview_config_sha256` 标识规范化草稿；`tracks` 为 `[{bone, times, values}]`，旋转值是辅助骨相对 setup 的角度增量。`animation`、`duration`、`changed`、`pending`、`regions`、`available`、`mode: "wind_solver"`、`no_wind` 和 `initial_from_rest` 供客户端显示状态。响应明确保留 `basis: "frozen_candidate"`、`authority: "none"`、`validated: false`、`production_authorized: false`；草稿未重新通过网格、接触或 Runtime 验收。
+
+每次计算前后核对冻结请求、父候选来源、候选／父级／动作／角色的任务记录、原动作文件哈希、完整候选 inventory 和全部目录／文件身份。用于计算的三个文件逐字节核验哈希，并复核父骨架。纹理不参与计算，不为每次滑条变化重复读取其内容。即时预览始终使用已构建的骨架，固定提示“基于已构建角色；修改骨架或区域归属后需重建”；当前作者状态的全树核验留在正式构建。输入不匹配、计算期间身份改变、缺少预览模板或结果超过 8 MiB 均拒绝返回轨迹；客户端保留实际烘焙姿态并显示原因。正式构建继续执行既有完整来源检查及验收链。
+
+2026-10-02 使用独立核心所带 Python 3.14.3 检查 Alice、辉夜与旧算法三份 9.93 秒候选。19／20／19 根辅助骨的纯计算中位约 113／98／96 ms。在独立 loopback HTTP 测试服务中，真实请求经过现有安全校验、JSON 读取、路由与响应函数，并读取真实任务记录及候选文件，三份候选各三次调用耗时约 436–468／399–421／405–419 ms，响应约 428／449／441 KB。此测试没有计入 Studio IPC、正式服务初始化或画布绘制。所有 120 Hz 时间点及 40 个随机时间点与烘焙轨道误差为 0，往返查表误差为 0；无风、反向风均改变响应。候选、父任务、原动作及角色任务文件身份保持，接口只返回辅助骨轨迹。30 项针对性 Python 测试通过，包含五个哈希、闭合请求字段、时间范围、完整目录、计算期间任务记录／动作字节／预览输入变动、输出预算及不写任务的检查。此记录不代替桌面视觉验收。
+
 ## 当前支持范围
 
 - 固定观察角度下的二维响应。身体候选含动态相机旋转时，仍拒绝把相机运动混入惯性；不会据此宣称已经支持真实三维风场或任意 360° 视角。

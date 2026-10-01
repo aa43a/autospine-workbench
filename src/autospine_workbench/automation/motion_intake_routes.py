@@ -7,6 +7,8 @@ from .motion_intake_jobs import MotionIntakeJobs
 
 
 def _methods(tail):
+    if len(tail) == 2 and tail[1] == 'wind-preview':
+        return 'POST, OPTIONS'
     if len(tail) == 3 and tail[1] == 'layer-edit-check':
         return 'GET, HEAD, OPTIONS'
     if len(tail) == 2 and tail[1] == 'layer-edit-check':
@@ -94,6 +96,11 @@ def dispatch_motions(parts, handler, method):
             elif tail[1] == 'joint-animation':
                 from .motion_joint_jobs import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=128000))
+            elif tail[1] == 'wind-preview':
+                from .motion_wind_preview import preview
+                result = preview(manager, tail[0], read_json_object_request(handler, maximum_bytes=128000))
+                handler._send_visual_json(200, result)
+                return True
             elif tail[1] == 'stage-review':
                 from .motion_stage_review import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))

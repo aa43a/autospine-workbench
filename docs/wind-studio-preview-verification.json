@@ -1,0 +1,70 @@
+{
+  "schema": "autospine.studio-wind-preview-verification/v1",
+  "date": "2026-10-02",
+  "python": "3.14.3",
+  "method": "Reuse installed-core Python with the current engine modules. Verify source requests before and after each call, all candidate inventory/tree identities, input hashes and parent skeleton. Compare every 120 Hz tick and 40 random times to baked rotations; repeat random seeks in reverse order.",
+  "timing_scope": "The initial pure/file-manager measurements exclude HTTP. The subsequent loopback HTTP measurements use the production safety, JSON request, dispatch and response functions with file-backed managers reading real candidate, parent, source and character journals. They include frozen-source integrity checks and exclude Studio IPC, full production server initialization and drawing.",
+  "candidates": [
+    {
+      "label": "alice",
+      "job_id": "motion-4cb84836b2e34757b8f8886067f1267f",
+      "artifact_sha256": "7857c8eae563c10ac099aa0d749ef42c11adda9b8405a6164dedf519316fa791",
+      "helpers": 19,
+      "duration": 9.933333,
+      "compute_median_ms": 112.6949,
+      "source_bound_endpoint_ms": 500.36,
+      "result_bytes": 428039,
+      "max_baked_track_error_deg": 0,
+      "random_seek_repeat_error_deg": 0,
+      "no_wind_max_endpoint_angle_change_deg": 2.1200913333696323,
+      "reverse_max_endpoint_angle_change_deg": 4.240182666739264,
+      "candidate_and_parent_file_identities_unchanged": true
+    },
+    {
+      "label": "huiye",
+      "job_id": "motion-06da972eba0b4862b796c0eb943f528d",
+      "artifact_sha256": "d3c86a7fea4509ad99f6429307364dee6310d967a4cbf2f801ebef194283b0d9",
+      "helpers": 20,
+      "duration": 9.933333,
+      "compute_median_ms": 97.8205,
+      "source_bound_endpoint_ms": 406.5394,
+      "result_bytes": 449381,
+      "max_baked_track_error_deg": 0,
+      "random_seek_repeat_error_deg": 0,
+      "no_wind_max_endpoint_angle_change_deg": 1.8960160427825377,
+      "reverse_max_endpoint_angle_change_deg": 3.7920320855650758,
+      "candidate_and_parent_file_identities_unchanged": true
+    },
+    {
+      "label": "legacy",
+      "job_id": "motion-eb770188d838449a819da04f6ac2e1e5",
+      "artifact_sha256": "ade1cc0cad108c470922310659100cee66b7a1c9b1538a50a0e3512125da357e",
+      "helpers": 19,
+      "duration": 9.933333,
+      "compute_median_ms": 96.4441,
+      "source_bound_endpoint_ms": 398.0277,
+      "result_bytes": 441295,
+      "max_baked_track_error_deg": 0,
+      "random_seek_repeat_error_deg": 0,
+      "no_wind_max_endpoint_angle_change_deg": 0.11629813587466063,
+      "reverse_max_endpoint_angle_change_deg": 0.23259627174932118,
+      "candidate_and_parent_file_identities_unchanged": true
+    }
+  ],
+  "response_contains_only_auxiliary_bone_tracks": true,
+  "candidate_body_channels_preserved": true,
+  "automated_fixture_verifies_all_state_bytes_unchanged": true,
+  "authority": "none",
+  "validated": false,
+  "production_authorized": false,
+  "basis": "frozen_candidate",
+  "http_verification": {
+    "method": "OS-assigned loopback port, production motion dispatch and WorkbenchResponseMixin, exact Origin and pipeline-preview intent, real JSON POST, actual persisted journals and candidate files",
+    "alice": {"status": 200, "roundtrip_ms": [468.4959, 458.2444, 436.1166], "response_bytes": 428131},
+    "huiye": {"status": 200, "roundtrip_ms": [421.0895, 398.7093, 419.0046], "response_bytes": 449473},
+    "legacy": {"status": 200, "roundtrip_ms": [418.5917, 409.8757, 405.2716], "response_bytes": 441387},
+    "candidate_parent_source_character_and_motion_file_identities_unchanged": true
+  },
+  "automated_tests": {"python": 30, "passed": true},
+  "runtime_or_visual_acceptance": "not_evaluated"
+}
