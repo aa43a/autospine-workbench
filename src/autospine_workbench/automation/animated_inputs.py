@@ -188,6 +188,8 @@ def save_binding_review(store, project_id, expected_input_sha256, records):
             draft = validate_layer_binding_draft(source['bindings'], draft)
         except (TypeError, ValueError) as exc:
             raise AnimatedSourceError('animated_binding_review_invalid') from exc
+        from .animated_binding_safety import check_binding_change
+        check_binding_change(store, project_id, source, draft)
         assert_registered_current(store, project_id, addresses)
         before_sha, before = _registrations(store, project_id)[-1]
         if before_sha != expected_registration:

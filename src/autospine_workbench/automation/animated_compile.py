@@ -21,6 +21,8 @@ def review_item(layer, reason, kind="binding"):
 
 def prepare_mesh(inputs):
     """Suggestions here are transient preview hypotheses, never saved decisions."""
+    from .animated_binding_safety import check_compile_binding
+    check_compile_binding(inputs)
     draft = deepcopy(inputs.draft)
     suggestions = []
     for record, options in zip(draft["records"], inputs.bindings["bindings"]):

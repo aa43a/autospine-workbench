@@ -37,6 +37,8 @@ class AnimatedApplication:
             result.update(can_build=True, input_identity_sha256=info["source_addresses"]["input_identity_sha256"],
                           binding_review={"bindings": review_bindings, "records": info["draft"]["records"]},
                           verification="registration_only")
+            from .animated_binding_safety import partition_hints
+            result['binding_review']['partition_hints'] = partition_hints(self.projects, project_id, info)
             result["review_items"] = [{"id": r["layer_id"] + ":binding", "layer_id": r["layer_id"],
                                            "type": "binding", "reason_code": "binding_selection_required"}
                                       for r in info["draft"]["records"] if r["action"] == "pending"]

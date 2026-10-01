@@ -49,7 +49,7 @@ def inspect_registration(store, project_id):
         assert_registered_current(store, project_id, addresses)
         return {'source_addresses': addresses, 'bindings': bindings, 'draft': draft,
                 'candidate': candidate, 'registration_current': True,
-                'skeleton_status': skeleton.get('status'),
+                'skeleton_status': skeleton.get('status'), 'skeleton': skeleton,
                 'authority': 'none', 'production_authorized': False,
                 'verification': 'registration_only'}
     except AnimatedSourceError:

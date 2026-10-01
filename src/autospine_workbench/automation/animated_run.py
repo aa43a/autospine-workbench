@@ -14,7 +14,8 @@ ENGINE = "workbench-weighted-animation-v1"
 def engine_identity():
     root = Path(__file__).resolve().parents[1]
     paths = {root / "automation" / name for name in (
-        "animated_compile.py", "animated_motion.py", "animated_package.py", "animated_partitions.py", "animated_run.py")}
+        "animated_compile.py", "animated_motion.py", "animated_package.py", "animated_partitions.py", "animated_run.py",
+        "animated_binding_safety.py")}
     for folder in ("asset/joints", "targets/spine43"):
         paths.update((root / folder).glob("*.py"))
     paths.update(root.glob("alpha_grid*.py"))
