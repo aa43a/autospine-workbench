@@ -1,4 +1,5 @@
 import {createEditHistory} from './motion-editor-history.js';
+import {windParameters} from './motion-wind-solver.js';
 
 export const JOINT_SCHEMA='autospine.joint-animation-config/v1';
 const jobId=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
@@ -52,7 +53,8 @@ export function validateJointConfig(value,meta){
   if(value.wind){
     const w=value.wind;
     if(w.schema!=='autospine.wind/v1'||!Number.isInteger(w.seed)||w.seed<0||w.seed>2147483647||
-       Object.keys(w).some(k=>!['schema','enabled','strength','direction','gust','frequency','seed','keys'].includes(k)))throw Error('风场参数格式无效。');
+       Object.keys(w).some(k=>!['schema','enabled','strength','direction','gust','frequency','seed','keys','response_profile'].includes(k)))throw Error('风场参数格式无效。');
+    if(w.response_profile!==undefined&&!['legacy-angular-v1','bounded-equilibrium-v2'].includes(w.response_profile))throw Error('受风模式无效。');
     if(!Array.isArray(w.keys)||w.keys.length>128)throw Error('风场最多保存 128 个关键帧。');
     let last=-1,stored=-1;
     for(const key of w.keys){
@@ -124,6 +126,18 @@ export function createJointState(){
     load(value,job){meta=validateJointMetadata(value,job);config=clone(meta.defaults);submitted=null;result=null;history.reset();},
     set(value){const next=validateJointConfig(value,meta);if(sameConfig(next,config))return false;history.record(config);config=next;return true;},
     change(group,key,value){const next=clone(config);setJointValue(group?next[group]:next,key,value);return this.set(next);},
+    windParameter(key,value,time){
+      if(!['strength','direction'].includes(key))return this.change('wind',key,value);
+      const next=clone(config);next.wind[key]=value;
+      if(next.wind.keys.length){
+        if(!Number.isFinite(time)||time<0||time>meta.duration)throw Error('关键帧时间超出身体动作范围。');
+        const [strength,direction]=windParameters(config.wind,time),t=Math.min(meta.duration,Math.round(time*1e6)/1e6);
+        const entry={time:t,strength,direction:((direction%360)+360)%360,[key]:value};
+        next.wind.keys=next.wind.keys.filter(k=>k.time!==t).concat(entry).sort((a,b)=>a.time-b.time);
+      }
+      return this.set(next);
+    },
+    windProfile(value){const next=clone(config);next.wind.response_profile=value;return this.set(next);},
     defaults(){return this.set(meta.defaults);},
     undo(){const previous=history.undo(config);if(previous)config=previous;},
     redo(){const next=history.redo(config);if(next)config=next;},
@@ -138,8 +152,10 @@ export function createJointState(){
     deleteKey(channel,time){const next=clone(config),t=Math.min(meta.duration,Math.round(time*1e6)/1e6);
       const target=channel==='wind'?next.wind:next.face[channel];
       target.keys=(target.keys??[]).filter(k=>k.time!==t);return this.set(next);},
-    clearKeys(channel){const next=clone(config);(channel==='wind'?next.wind:next.face[channel]).keys=[];return this.set(next);},
-    enableWind(){const next=clone(config);next.wind.enabled=true;
+    clearKeys(channel,time=0){const next=clone(config),target=channel==='wind'?next.wind:next.face[channel];
+      if(channel==='wind'){const [strength,direction]=windParameters(config.wind,time);Object.assign(target,{strength,direction:((direction%360)+360)%360});}
+      target.keys=[];return this.set(next);},
+    enableWind(){const next=clone(config);next.wind.enabled=true;next.wind.response_profile='bounded-equilibrium-v2';
       for(const group of ['hair','cloth','objects']){
         const rows=meta.inventory?.[group]??[],available=rows.filter(r=>r.state==='available');
         if(available.length){next[group].enabled=true;

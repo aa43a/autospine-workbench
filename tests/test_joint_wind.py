@@ -24,6 +24,48 @@ def preview_fixture():
 
 
 class JointWindTests(unittest.TestCase):
+    def test_equilibrium_response_keeps_high_strengths_distinct_and_legacy_frozen(self):
+        ticks = grid(4.); poses = [(0., 0., -90.) for _ in ticks]
+        angles = []
+        for strength in (0., 25., 50., 75., 100.):
+            cfg = dict(joint_wind.defaults(), enabled=True, strength=strength, gust=0., response_profile=joint_wind.RESPONSE_PROFILE)
+            wind, _ = joint_wind.vectors(cfg, ticks)
+            force = joint_wind.angular_forces(wind, poses, profile=cfg['response_profile'], stiffness=36., max_angle=6.)
+            values, _ = solve(ticks, poses, max_angle=6., external_forces=force)
+            angles.append(values[-1])
+        self.assertEqual(angles[0], 0.)
+        self.assertTrue(all(b > a+.2 for a,b in zip(angles, angles[1:])), angles)
+        self.assertLess(angles[-1], 6.)
+        old = dict(joint_wind.defaults(), enabled=True)
+        self.assertEqual(old, joint_wind.normalize(old, 4.))
+        self.assertNotIn('response_profile', normalize({'wind': old}, 4.)['wind'])
+        self.assertEqual(defaults()['wind']['response_profile'], joint_wind.RESPONSE_PROFILE)
+        with self.assertRaisesRegex(ValueError, 'response_profile'):
+            joint_wind.normalize(dict(old, response_profile='unbounded'), 4.)
+
+    def test_projected_overlap_diagnostic_does_not_clamp_rigid_safe_geometry(self):
+        from autospine_workbench.targets.character43.affine_pose import matrices
+        from autospine_workbench.targets.character43.joint_secondary_guard import protect
+        from autospine_workbench.targets.character43.joint_secondary import _points
+        doc = dict(bones=[dict(name='root', x=0., y=0., rotation=0.),
+            dict(name='head', parent='root', x=0., y=0., rotation=0.),
+            dict(name='neck', parent='root', x=0., y=-20., rotation=0.),
+            dict(name='m5-object-hair', parent='root', x=0., y=0., rotation=0.)],
+            slots=[dict(name='hair', bone='root', attachment='hair')],
+            skins=[dict(attachments={'hair': {'hair':dict(type='mesh', uvs=[0,0,1,0,0,1], triangles=[0,1,2],
+                vertices=[1,3,-10.,-10.,1., 1,3,-10.,-12.,1., 1,3,-12.,-10.,1.])}})],
+            animations={'idle':{'bones':{'m5-object-hair':{'rotate':[
+                dict(time=0.,value=0.),dict(time=1/120,value=20.),dict(time=2/120,value=20.)]}}}})
+        base = deepcopy(doc); base['animations']['idle']['bones'] = {}
+        times = [0.,1/120,2/120]; poses = [matrices(base,'idle',t) for t in times]
+        records = [dict(slot='hair',helpers=['m5-object-hair'],peak_response_deg=20.,springs=[dict(peak_angle_deg=20.)])]
+        old = protect(deepcopy(doc),base,'idle',deepcopy(records),times,poses,_points)
+        new = protect(deepcopy(doc),base,'idle',deepcopy(records),times,poses,_points,projected_overlap='diagnostic')
+        self.assertLess(old[0]['effective_gain'], 1.)
+        self.assertEqual(new[0]['effective_gain'], 1.)
+        self.assertGreater(new[0]['history'][0]['collision_failed_samples'], 0)
+        self.assertEqual(new[0]['history'][0]['geometry_failed_samples'], 0)
+        self.assertFalse(new[0]['collision']['physical_collision_evaluated'])
     def test_preview_route_reads_only_the_verified_candidate_bundle(self):
         from autospine_workbench.automation.motion_target_jobs import review_file
         from autospine_workbench.automation.pipeline_run import PipelineRunError

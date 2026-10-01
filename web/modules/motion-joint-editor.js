@@ -2,12 +2,17 @@ import {createJointWorkflow} from './motion-joint-editor-workflow.js';
 import {createJointView} from './motion-joint-editor-view.js';
 
 export function createJointEditor({container,getSelection,inspect,seek=()=>{},preview=()=>null}){
-  let workflow=null,shown=null,previewEnabled=true,noWind=false,lastStatus={};
+  let workflow=null,shown=null,previewEnabled=true,noWind=false,lastStatus={},time=0;
   const actions={inspect,seek};
   actions.preview=enabled=>{previewEnabled=enabled;if(!enabled)noWind=false;paint(workflow.state,lastStatus);};
   actions.noWind=enabled=>{noWind=enabled;previewEnabled=true;paint(workflow.state,lastStatus);};
-  for(const name of ['undo','redo','defaults','save','restore','build','refresh','cancel','retry','change','key','deleteKey','clearKeys','anchor','targets','local','mouthAsset','enableWind'])
+  for(const name of ['undo','redo','defaults','save','restore','build','refresh','cancel','retry','change','key','deleteKey','clearKeys','anchor','targets','local','mouthAsset','enableWind','windParameter','windProfile'])
     actions[name]=(...args)=>workflow[name](...args);
+  actions.windParameter=(key,value,current=time)=>{
+    if(workflow.state.config?.wind?.keys.length)seek(current);
+    workflow.windParameter(key,value,current);
+  };
+  actions.windView=()=>window.dispatchEvent(new Event('autospine:wind-view'));
   const view=createJointView(container,actions);
   function paint(state,status){
     lastStatus=status;
@@ -20,5 +25,5 @@ export function createJointEditor({container,getSelection,inspect,seek=()=>{},pr
   workflow.reset();
   window.addEventListener('pagehide',()=>workflow.close());
   return {load:(job,options)=>{noWind=false;return workflow.load(job,options);},restoreResult:(job,report)=>workflow.restoreResult(job,report),
-    reset:()=>{noWind=false;return workflow.reset();},seek:time=>view.time(time)};
+    reset:()=>{noWind=false;return workflow.reset();},seek:value=>{time=value;view.time(value);}};
 }

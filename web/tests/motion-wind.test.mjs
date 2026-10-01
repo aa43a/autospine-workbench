@@ -4,7 +4,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {windVectors,windParameters,springSolve,angularWind} from '../modules/motion-wind-solver.js';
-import {jointWindPreview,windOffsets,applyWindOffsets,validateWindTemplate} from '../modules/motion-wind-preview.js';
+import {jointWindPreview,windOffsets,applyWindOffsets,validateWindTemplate,windPreviewGain} from '../modules/motion-wind-preview.js';
 import {createJointState,jointDraft,restoreJointDraft} from '../modules/motion-joint-editor-state.js';
 import {readWindTemplate} from '../modules/motion-editor-result.js';
 
@@ -28,6 +28,10 @@ test('published wind resource is source-bound and a failed fetch is explicit',as
 test('browser and export spring trajectories agree for hair cascade and cloth wind, including baking and guard gain',()=>{
   const {template,report,config,document}=fixture;
   const preview=jointWindPreview(template,{...report,config,inventory:{}},config);
+  const withReview={...report,config,inventory:{},secondary:{geometry_guard:[{slot:template.regions[0].slot,
+    collision:{policy:'diagnostic'},history:[{collision_failed_samples:2}]}]}};
+  assert.equal(jointWindPreview(template,withReview,config).regions[0].built_projected_overlap,true);
+  assert.equal(preview.regions[0].built_projected_overlap,false);
   for(const row of report.regions)for(const helper of row.helpers){
     const keys=document.animations.idle.bones[helper].rotate,track=preview.tracks.get(helper);
     assert.deepEqual(track.times,keys.map(k=>k.time));
@@ -85,4 +89,34 @@ test('tampered source identity or helper ownership cannot turn wind preview into
   Object.assign(f.template,report);assert.equal(validateWindTemplate(f.template,report,f.document),f.template);
   assert.throws(()=>validateWindTemplate({...f.template,skeleton_sha256:'other'},report,f.document),/来源/);
   f.template.regions[0].helpers=['head'];assert.throws(()=>validateWindTemplate(f.template,report,f.document),/骨骼/);
+});
+
+test('keyed strength and direction edits update the evaluated time immediately without rewriting other keys',()=>{
+  const defs=python('import json; from autospine_workbench.targets.character43.joint_animation_config import defaults,controls; print(json.dumps(dict(defaults=defaults(),controls=controls())))');
+  const parent={job_id:'motion-'+'a'.repeat(32),kind:'adapt',status:'succeeded',result:{artifact_sha256:'b'.repeat(64)}};
+  const meta={...defs,parent_job_id:parent.job_id,artifact_sha256:parent.result.artifact_sha256,duration:2,inventory:{}};
+  const state=createJointState();state.load(meta,parent);
+  state.key('wind',0,{strength:45,direction:345});state.key('wind',2,{strength:20,direction:15});
+  const original=structuredClone(state.config.wind.keys);
+  state.windParameter('strength',79,1);
+  assert.deepEqual(windParameters(state.config.wind,1),[79,0]);
+  assert.deepEqual([state.config.wind.keys[0],state.config.wind.keys[2]],original);
+  state.undo();assert.deepEqual(state.config.wind.keys,original);state.redo();
+  state.windParameter('direction',180,1);assert.deepEqual(windParameters(state.config.wind,1),[79,180]);
+  state.clearKeys('wind',1);assert.deepEqual(windParameters(state.config.wind,1),[79,180]);assert.equal(state.config.wind.keys.length,0);
+  state.undo();assert.equal(state.config.wind.keys.length,3);
+  assert.throws(()=>state.windParameter('strength',80,2.1),/时间/);
+});
+
+test('equilibrium wind has a visible strength range and matches the export solver',()=>{
+  const data=python("import json; from autospine_workbench.targets.character43.joint_wind import defaults,vectors,angular_forces; from autospine_workbench.targets.character43.joint_spring import grid,solve; t=grid(4.); p=[(0.,0.,-90.) for _ in t]; c=dict(defaults(),enabled=True,strength=75.,gust=.3,response_profile='bounded-equilibrium-v2'); w,r=vectors(c,t); f=angular_forces(w,p,profile=c['response_profile'],stiffness=36.,max_angle=6.); v,e=solve(t,p,max_angle=6.,external_forces=f); print(json.dumps(dict(config=c,times=t,poses=p,values=v)))");
+  const result=springSolve(data.times,data.poses,{max_angle:6,external:angularWind(windVectors(data.config,data.times).values,data.poses,{profile:data.config.response_profile,max_angle:6})});
+  assert.ok(Math.max(...result.map((v,i)=>Math.abs(v-data.values[i])))<1e-11);
+  const peaks=[25,50,75,100].map(strength=>springSolve(data.times,data.poses,{max_angle:6,
+    external:angularWind(windVectors({...data.config,strength,gust:0},data.times).values,data.poses,{profile:data.config.response_profile,max_angle:6})}).at(-1));
+  assert.ok(peaks.every((v,i)=>!i||v>peaks[i-1]+.2));
+  const record={slot:'hair',post_solve_gain:.125},config={wind:{response_profile:'bounded-equilibrium-v2'}};
+  const report={config:{wind:{}},secondary:{geometry_guard:[{slot:'hair',history:[{gain:1,min_area_ratio:.98,max_area_ratio:1.02,max_edge_stretch:1.05}]}]}};
+  assert.equal(windPreviewGain(record,report,config),1);
+  report.secondary.geometry_guard[0].history[0].min_area_ratio=-1;assert.equal(windPreviewGain(record,report,config),.125);
 });

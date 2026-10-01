@@ -49,6 +49,7 @@ export function jointResultSummary(job){
     lines.push(`${label}：${names[row.status]||row.status||'尚无状态'}`);
     if(key==='secondary'&&row.wind){
       lines.push(`风场：${row.wind.enabled?'已烘焙到动画':'未启用'} · 固定画面方向${row.wind.enabled?` · 阵风 ${row.wind.effective_frequency_hz.toFixed(2)} Hz`:''}`);
+      if(row.wind.response_profile==='bounded-equilibrium-v2')lines.push('受风响应：自然摆动；网格翻转与拉伸仍受保护，二维身体覆盖单独记录，尚不代表物理碰撞或遮挡已通过。');
       if(summary.loop?.requested&&row.wind.enabled&&!row.wind.loop_compatible)issues.push('风场首尾不连续，需要调整风强或风向关键帧。');
     }
     if(['blocked','partial','needs_changes'].includes(row.status))issues.push(`${label}${names[row.status]}`);
@@ -132,7 +133,8 @@ export function createJointView(container,actions){
     if(c.options)for(const value of c.options)input.append(element('option',String(value),{value}));
     label.append(element('span',c.label),input);if(!c.options)input.type=c.type==='boolean'?'checkbox':'number';
     if(c.type==='boolean')input.checked=value;else{input.value=value;for(const key of ['min','max','step'])if(c[key]!==undefined)input[key]=c[key];}
-    const change=()=>actions.change(c.group,c.key,c.type==='boolean'?input.checked:input.value===''?NaN:Number(input.value));
+    const apply=value=>c.group==='wind'&&['strength','direction'].includes(c.key)?actions.windParameter(c.key,value,time):actions.change(c.group,c.key,value);
+    const change=()=>apply(c.type==='boolean'?input.checked:input.value===''?NaN:Number(input.value));
     input.onchange=change;
     if((['hair','cloth','objects'].includes(c.group)&&c.key==='strength')||c.group==='wind'&&c.type==='number')input.oninput=()=>{if(input.value!==''&&input.checkValidity())change();};
     let slider=null;
@@ -140,7 +142,7 @@ export function createJointView(container,actions){
       label.classList.add('joint-strength');
       slider=element('input','',{type:'range',min:c.min??0,max:c.max??2,step:c.step??.05,
         'aria-label':`${c.label}滑条`,'data-joint-control':`${c.group}.${c.key}-slider`});slider.value=value;
-      slider.oninput=()=>actions.change(c.group,c.key,Number(slider.value));label.append(slider);
+      slider.oninput=()=>apply(Number(slider.value));label.append(slider);
     }
     inputs.set(`${c.group||'common'}.${c.key}`,{input,c,slider});parent.append(label);
   }
@@ -250,6 +252,7 @@ export function createJointView(container,actions){
       input.disabled=!loaded||busy;
       if(slider){slider.value=value;slider.disabled=!loaded||busy;}
     }
+    if(loaded)windControls?.seek(time);
     for(const b of Object.values(buttons))b.disabled=!loaded||busy;
     updateAnchor();if(anchorForm){for(const input of anchorForm.panel.querySelectorAll('input,select,button'))input.disabled=!loaded||busy;
       anchorForm.canvas.style.pointerEvents=busy?'none':'';}

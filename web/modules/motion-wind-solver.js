@@ -18,8 +18,9 @@ export function windVectors(config,times,loop=false){
     return [force*Math.cos(direction*rad),force*Math.sin(direction*rad)];});
   return {values,compatible:Math.hypot(values[0][0]-values.at(-1)[0],values[0][1]-values.at(-1)[1])<=1e-8};
 }
-export function angularWind(vectors,poses,{axis_offset=0,response=1,length=100}={}){
-  const scale=360*response*Math.max(.5,Math.min(2,Math.sqrt(100/Math.max(8,length))));
+export function angularWind(vectors,poses,{axis_offset=0,response=1,length=100,profile='legacy-angular-v1',stiffness=36,max_angle=4}={}){
+  const acceleration=profile==='bounded-equilibrium-v2'?.9*stiffness*max_angle:360;
+  const scale=acceleration*response*Math.max(.5,Math.min(2,Math.sqrt(100/Math.max(8,length))));
   return poses.map((p,i)=>scale*(Math.cos((p[2]+axis_offset)*rad)*vectors[i][1]-Math.sin((p[2]+axis_offset)*rad)*vectors[i][0]));
 }
 export function springSolve(times,poses,{stiffness=36,damping=.85,strength=1,max_angle=4,length=100,loop=false,external=null,compatible=true}={}){

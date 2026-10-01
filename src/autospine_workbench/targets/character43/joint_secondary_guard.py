@@ -32,7 +32,9 @@ def _pose(base, bones, helpers, values):
     return result
 
 
-def protect(document, baseline, animation, records, ticks, poses, sampler):
+def protect(document, baseline, animation, records, ticks, poses, sampler, *, projected_overlap='bounded'):
+    if projected_overlap not in ('bounded', 'diagnostic'):
+        raise ValueError('joint_secondary_overlap_policy')
     bones = {b['name']: b for b in document['bones']}
     tracks = document['animations'][animation]['bones']
     rest = dict(baseline, animations={'setup': {}}); setup_pose = matrices(rest, 'setup', 0)
@@ -59,7 +61,7 @@ def protect(document, baseline, animation, records, ticks, poses, sampler):
             values[name] = [interpolate(times, offsets, t) for t in ticks]
         history = []; selected_gain = 0.
         for gain in (1., .5, .25, .125, .0625, .03125, 0.):
-            worst = None; failed = 0; minimum = 1.; maximum = stretch = 1.; penetration_peak = 0.; collision_failed = 0
+            worst = None; failed = geometry_failed = 0; minimum = 1.; maximum = stretch = 1.; penetration_peak = 0.; collision_failed = 0
             for index, (time, pose, before) in enumerate(zip(ticks, poses, base_metrics, strict=True)):
                 response_pose = _pose(pose, bones, helpers, {n: values[n][index]*gain for n in helpers})
                 current = sampler(document, animation, time, slot, transforms=response_pose)
@@ -69,12 +71,18 @@ def protect(document, baseline, animation, records, ticks, poses, sampler):
                 # failures stay visible; zero new response never hides them.
                 limits = (min(.55, before[0]), max(1.9, before[1]), max(1.9, before[2]))
                 severity = max(limits[0]-lo, hi-limits[1], edge-limits[2])
+                geometry_failed += int(severity > 1e-7)
                 clearance = None
                 if index in collision_indices:
                     clearance = compare_clearance(current, base_penetration[index], proxy_frames[index])
                     penetration_peak = max(penetration_peak, clearance['new_penetration_px'])
                     collision_failed += int(not clearance['passed'])
-                    severity = max(severity, clearance['new_penetration_px']-clearance['allowed_increase_px'])
+                    # Projected layers intentionally cover the face and torso.
+                    # A 2D capsule cannot distinguish depth-separated overlap
+                    # from physical collision; keep its evidence as a warning
+                    # in the explicitly versioned wind response mode.
+                    if projected_overlap == 'bounded':
+                        severity = max(severity, clearance['new_penetration_px']-clearance['allowed_increase_px'])
                 if severity > 1e-7:
                     failed += 1
                     if worst is None or severity > worst['severity']:
@@ -82,7 +90,8 @@ def protect(document, baseline, animation, records, ticks, poses, sampler):
                                      max_area_ratio=hi, max_edge_stretch=edge, baseline=list(before), clearance=clearance)
             history.append(dict(gain=gain, failed_samples=failed, min_area_ratio=minimum,
                                 max_area_ratio=maximum, max_edge_stretch=stretch, worst=worst,
-                                new_proxy_penetration_px=penetration_peak, collision_failed_samples=collision_failed))
+                                new_proxy_penetration_px=penetration_peak, collision_failed_samples=collision_failed,
+                                geometry_failed_samples=geometry_failed))
             if not failed:
                 selected_gain = gain; break
         for name in helpers:
@@ -102,6 +111,7 @@ def protect(document, baseline, animation, records, ticks, poses, sampler):
             collision=dict(profile='baseline-relative-planar-head-torso-capsules-v1',
                 sample_count=len(collision_indices), allowed_added_penetration_px=1.,
                 available=any(proxy_frames.values()), original_coverage_preserved=True,
+                policy=projected_overlap, physical_collision_evaluated=False,
                 scope='geometric_vertices_at_60hz_no_alpha_depth_or_clothing_self_collision'))
         record['geometry_guard'] = summary; summaries.append(summary)
     return summaries

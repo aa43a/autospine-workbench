@@ -1,11 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {resultMatch,resultTrack} from '../modules/motion-editor-result.js';
+import {resultMatch,resultTrack,windComparisonDelta,windComparisonCrop,windPixelDifference} from '../modules/motion-editor-result.js';
 const keys=[{time:0,yaw:0},{time:1,yaw:360}];
 const job={kind:'adapt',status:'succeeded',job_id:'target',project_id:'alice',character_job_id:'character',result:{artifact_sha256:'artifact',projection:{profile:'continuous-yaw-source-camera-v1',keys}}};
 const link={target_job_id:'target',artifact_sha256:'artifact',clip:null,duration:1,source_job_id:'source',source_sha256:'raw',motion_identity:{clip_sha256:'clip',bundle_sha256:'bundle'}};
 const source={source_sha256:'raw',motion_identity:{...link.motion_identity}};
 const identity={project_id:'alice',character_job_id:'character',source_id:'source'};
+
+test('wind comparison uses matching material vertices and one crop for both images',()=>{
+  const a=new Map([['hair',[0,0,10,20]]]),b=new Map([['hair',[3,4,10,20]]]);
+  assert.equal(windComparisonDelta(a,b),5);
+  assert.equal(windComparisonDelta(a,a),0);
+  const bounds={left:-50,bottom:-50,width:100,height:100};
+  assert.deepEqual(windComparisonCrop(bounds,[]),{x:0,y:0,width:100,height:100});
+  const crop=windComparisonCrop(bounds,[...a.values(),...b.values()]);
+  assert.ok(crop.x>=0&&crop.y>=0&&crop.x+crop.width<=100&&crop.y+crop.height<=100);
+  assert.ok(crop.width<100&&crop.height<100);
+});
+test('visible pixel comparison ignores RGB hidden behind transparency and counts silhouette movement',()=>{
+  const a=new Uint8ClampedArray([255,0,0,0, 255,255,255,255, 80,90,100,255]);
+  const b=new Uint8ClampedArray([0,255,0,0, 255,255,255,0, 82,91,101,255]);
+  assert.equal(windPixelDifference(a,b),1);
+  assert.equal(windPixelDifference(a,a),0);
+  assert.throws(()=>windPixelDifference(a,b.slice(4)),/尺寸/);
+});
 
 test('last frame rational time agrees with MotionIR microsecond keys',()=>{
   const candidate=structuredClone(job);candidate.result.projection.keys=[{time:0,yaw:0},{time:.966667,yaw:360}];

@@ -219,7 +219,9 @@ def apply(files, document, animation, config, times, camera_keys=None):
             if wind_values is not None:
                 external = joint_wind.angular_forces(wind_values, root_poses,
                     axis_offset=record.get('wind_axis_offset', 0.), response=cfg['wind_response'],
-                    length=indices[helper].get('length', 100.))
+                    length=indices[helper].get('length', 100.),
+                    profile=config['wind'].get('response_profile', 'legacy-angular-v1'),
+                    stiffness=cfg['stiffness'], max_angle=cfg['max_angle'])
             response, evidence = solve(ticks, root_poses, stiffness=cfg['stiffness'], damping=cfg['damping'],
                 strength=cfg['strength']*(.5 if helper.endswith('-lower') or helper.endswith('_lower') else 1.),
                 max_angle=cfg['max_angle'], length=indices[helper].get('length', 100.), loop=config['loop'],
@@ -239,7 +241,11 @@ def apply(files, document, animation, config, times, camera_keys=None):
         record['peak_response_deg'] = max((r['peak_angle_deg'] for r in spring_reports), default=0.)
         record['motion_status'] = 'responding' if record['peak_response_deg'] > 1e-6 else 'static_driver_no_inertia'
     from .joint_secondary_guard import protect
-    report['geometry_guard'] = protect(output, baseline, animation, records, ticks, poses, _points)
+    overlap_policy = ('diagnostic' if config.get('wind', {}).get('response_profile') == joint_wind.RESPONSE_PROFILE else 'bounded')
+    report['geometry_guard'] = protect(output, baseline, animation, records, ticks, poses, _points,
+                                       projected_overlap=overlap_policy)
+    if overlap_policy == 'diagnostic':
+        report['collision_scope'] = 'projected_overlap_diagnostic_not_physical_collision'
     for record in records:
         record['effective_config'] = dict(record['requested_config'],
             strength=record['requested_config']['strength']*record['effective_gain'],

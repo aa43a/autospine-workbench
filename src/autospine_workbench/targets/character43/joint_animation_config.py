@@ -12,7 +12,7 @@ def defaults(*, wind=True):
     secondary = joint_secondary.defaults(wind=wind)
     return dict(schema=SCHEMA, seed=0, fps=30, loop=False,
                 face=joint_face.defaults(), hair=secondary['hair'], cloth=secondary['cloth'], objects=secondary['objects'],
-                **({'wind':wind_defaults()} if wind else {}))
+                **({'wind':dict(wind_defaults(), response_profile='bounded-equilibrium-v2')} if wind else {}))
 
 
 def normalize(value, duration):

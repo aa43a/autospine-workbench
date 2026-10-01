@@ -15,15 +15,47 @@ export async function readWindTemplate(jobId,report,document,read=fetch){
   return validateWindTemplate(JSON.parse(new TextDecoder().decode(raw)),report,document);
 }
 
-function windThumbnail(source,time,preview){
+export function windComparisonDelta(before,after){
+  let maximum=0;
+  for(const [slot,points]of before){const current=after.get(slot);if(!current||current.length!==points.length)continue;
+    for(let i=0;i<points.length;i+=2)maximum=Math.max(maximum,Math.hypot(points[i]-current[i],points[i+1]-current[i+1]));}
+  return maximum;
+}
+export function windPixelDifference(before,after){
+  if(before.length!==after.length||before.length%4)throw Error('受风对照图像尺寸不一致');
+  let changed=0;
+  for(let i=0;i<before.length;i+=4){
+    let difference=Math.abs(before[i+3]-after[i+3]);
+    for(let c=0;c<3;c++)difference=Math.max(difference,Math.abs(before[i+c]*before[i+3]-after[i+c]*after[i+3])/255);
+    if(difference>=16)changed++;
+  }
+  return changed;
+}
+export function windComparisonCrop(bounds,regions){
+  if(!regions.length)return {x:0,y:0,width:bounds.width,height:bounds.height};
+  const xs=regions.flatMap(points=>points.filter((_,i)=>i%2===0)),ys=regions.flatMap(points=>points.filter((_,i)=>i%2===1));
+  const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys),padding=Math.max(12,(right-left)*.12,(top-bottom)*.12);
+  const x=Math.max(0,left-padding-bounds.left),y=Math.max(0,bounds.height-(top+padding-bounds.bottom));
+  return {x,y,width:Math.max(1,Math.min(bounds.width-x,right+padding-bounds.left-x)),height:Math.max(1,Math.min(bounds.height-y,bounds.height-(bottom-padding-bounds.bottom)-y))};
+}
+function windThumbnail(source,time,preview,comparison=null){
   const canvas=document.querySelector('[data-wind-preview-canvas]'),status=document.querySelector('[data-wind-preview-status]');
   if(!canvas)return;
-  const context=canvas.getContext('2d');context?.clearRect(0,0,canvas.width,canvas.height);
-  canvas.hidden=!source;
+  const baseline=document.querySelector('[data-wind-baseline-canvas]'),delta=document.querySelector('[data-wind-delta]');
+  const context=canvas.getContext('2d');context?.clearRect(0,0,canvas.width,canvas.height);baseline?.getContext('2d')?.clearRect(0,0,baseline.width,baseline.height);
+  canvas.hidden=!source;if(baseline)baseline.hidden=!comparison;
+  if(delta)delta.textContent='';
   if(!source){if(status)status.textContent='先构建或载入联合候选，即可同帧观察风场效果。';return;}
-  const scale=Math.min(canvas.width/source.width,canvas.height/source.height);
-  context?.drawImage(source,(canvas.width-source.width*scale)/2,(canvas.height-source.height*scale)/2,source.width*scale,source.height*scale);
-  if(status)status.textContent=`${time.toFixed(3)} 秒 · ${preview?.noWind?'无风对照':preview?.changed?'即时草稿，需构建验证':'已构建结果'}`;
+  const crop=comparison?.crop??{x:0,y:0,width:source.width,height:source.height},scale=Math.min(canvas.width/crop.width,canvas.height/crop.height);
+  const copy=(from,to)=>to?.getContext('2d')?.drawImage(from,crop.x,crop.y,crop.width,crop.height,(to.width-crop.width*scale)/2,(to.height-crop.height*scale)/2,crop.width*scale,crop.height*scale);
+  copy(source,canvas);if(comparison&&baseline)copy(comparison.baseline,baseline);
+  if(status)status.textContent=`${time.toFixed(3)} 秒 · ${comparison?'相同身体姿态，仅比较风力':preview?.noWind?'无风对照':preview?.changed?'即时草稿，需构建验证':'已构建结果'}`;
+  if(delta&&comparison){const display=canvas.getBoundingClientRect(),pixels=comparison.delta*scale*Math.min(display.width/canvas.width,display.height/canvas.height);
+    const changed=windPixelDifference(baseline.getContext('2d').getImageData(0,0,baseline.width,baseline.height).data,
+      context.getImageData(0,0,canvas.width,canvas.height).data);
+    const retained=(comparison.regions??[]).filter(row=>row.gain<.999).map(row=>`${({hair:'头发',cloth:'裙袖',objects:'挂饰'})[row.kind]} ${Math.round(row.gain*100)}%`);
+    const overlap=(comparison.regions??[]).filter(row=>row.built_projected_overlap).length,startFromRest=time===0&&preview?.initial_from_rest!==false;
+    delta.textContent=`当前最大位移 ${comparison.delta.toFixed(2)} px · 此观察窗 ${pixels.toFixed(2)} px · 画面变化 ${changed} 像素${startFromRest?' · 首帧从静止开始，请播放或拖到后续时间':pixels<.75?' · 差异较小，可放大区域或提高风强':''}。${retained.length?'网格保护保留：'+[...new Set(retained)].join('、')+'。':''}${overlap?`原构建有 ${overlap} 个区域的二维覆盖变化，待视觉检查。`:''}${preview?.changed?'即时草稿，仍需构建验证。':''}`;}
 }
 
 export function resultTrack(job,link){
@@ -46,22 +78,27 @@ export function resultMatch(job,link,source,identity,keys,track){
   return editsMatch&&JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection?.sampling_profile??null)?'matching':'draft_changed';
 }
 export function createEditorResult({canvas,status,restore,selection,viewport=()=>{}}){
-  let renderer=null,job=null,link=null,track=null,version=0,time=0,jointReport=null,previewDraft=null,preview=null,previewSignature=null,windTemplate=null,jointResourceError=null;
+  let renderer=null,job=null,link=null,track=null,version=0,time=0,jointReport=null,previewDraft=null,preview=null,previewSignature=null,windTemplate=null,jointResourceError=null,windPlan=null,calmPlan=null;
+  const windImage=document.createElement('canvas'),calmImage=document.createElement('canvas');
+  const capture=target=>{if(target.width!==canvas.width||target.height!==canvas.height){target.width=canvas.width;target.height=canvas.height;}
+    const context=target.getContext('2d');context?.clearRect(0,0,target.width,target.height);context?.drawImage(canvas,0,0);};
   function refreshPreview(){
-    preview=null;
+    preview=null;windPlan=null;calmPlan=null;
     if(!renderer||!previewDraft?.enabled)return;
     if(jointResourceError){preview={available:false,changed:false,pending:[jointResourceError],gains:new Map(),reason:'受风预览未应用，画布保留已构建结果。'};return;}
     if(!jointReport)return;
     const provenance=job?.result?.joint_source_provenance;
     if(previewDraft.parent_job_id!==job?.result?.joint_parent_job_id||previewDraft.artifact_sha256!==provenance?.artifact_sha256)return;
     try{
-      preview=windTemplate&&previewDraft.config.wind?
-        jointWindPreview(windTemplate,jointReport,previewDraft.config,{noWind:previewDraft.noWind}):
-        jointAmplitudePreview(renderer.document,jointReport,previewDraft.config);
+      if(windTemplate&&previewDraft.config.wind){
+        windPlan=jointWindPreview(windTemplate,jointReport,previewDraft.config);
+        calmPlan=jointWindPreview(windTemplate,jointReport,previewDraft.config,{noWind:true});
+        preview=previewDraft.noWind?calmPlan:windPlan;
+      }else preview=jointAmplitudePreview(renderer.document,jointReport,previewDraft.config);
       if(previewDraft.noWind&&!windTemplate)preview.pending.push('无风对照需先构建受风区域');
     }catch(e){preview={available:false,changed:false,pending:[e.message],gains:new Map(),reason:'受风预览未应用，画布保留已构建结果。'};}
   }
-  function clear(){version++;renderer?.dispose();renderer=null;job=null;link=null;track=null;jointReport=null;preview=null;windTemplate=null;jointResourceError=null;windThumbnail(null);viewport(null);window.motionEditorResultState=null;document.getElementById('restore-result').disabled=true;}
+  function clear(){version++;renderer?.dispose();renderer=null;job=null;link=null;track=null;jointReport=null;preview=null;windPlan=null;calmPlan=null;windTemplate=null;jointResourceError=null;windThumbnail(null);viewport(null);window.motionEditorResultState=null;document.getElementById('restore-result').disabled=true;}
   function seek(value){
     time=value;if(!renderer)return;
     const s=selection(),match=resultMatch(job,link,s.source,s.identity,s.keys,track);
@@ -74,12 +111,25 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
     try {
       viewport(renderer.bounds);
       if(time<0||time>link.duration+0.00001)throw Error('时间超出此结果范围');
-      const bones=renderer.draw(time,{jointGains:preview?.gains,jointOffsets:windOffsets(preview,time)});
-      windThumbnail(canvas,time,preview);
+      let comparison=null,windBones=null;
+      if(windPlan&&calmPlan){
+        const focus=document.querySelector('[data-wind-view]')?.value??'whole';
+        const rows=windTemplate.regions.filter(row=>focus==='whole'||row.region_kind===focus);
+        renderer.draw(time,{jointOffsets:windOffsets(calmPlan,time)});capture(calmImage);
+        const before=new Map(rows.map(row=>[row.slot,renderer.layerGeometry(row.slot)?.points??[]]));
+        windBones=renderer.draw(time,{jointOffsets:windOffsets(windPlan,time)});capture(windImage);
+        const after=new Map(rows.map(row=>[row.slot,renderer.layerGeometry(row.slot)?.points??[]]));
+        const crop=windComparisonCrop(renderer.bounds,focus==='whole'?[]:[...before.values(),...after.values()].filter(p=>p.length));
+        comparison={baseline:calmImage,crop,delta:windComparisonDelta(before,after),regions:windPlan.regions.filter(row=>focus==='whole'||row.kind===focus)};
+      }
+      const bones=preview?.noWind?renderer.draw(time,{jointOffsets:windOffsets(calmPlan,time)}):
+        comparison?windBones:renderer.draw(time,{jointGains:preview?.gains,jointOffsets:windOffsets(preview,time)});
+      windThumbnail(comparison?windImage:canvas,time,preview,comparison);
       canvas.setAttribute('aria-label',preview?.changed?'次级运动草稿预览，尚未验证':'实际导出姿态');
       const heading=document.querySelector('#result-viewport h2');
       if(heading)heading.textContent=preview?.changed?(preview.mode==='wind_solver'?'即时受风预览 · 尚未构建验证':'即时幅度预览 · 尚未构建验证'):'构建结果 · 共用动作时间轴';
       window.motionEditorResultState={status:preview?.changed?'joint_preview':match,job_id:job.job_id,artifact:renderer.artifact,time,bones,
+        wind_comparison:comparison?{max_delta_px:comparison.delta,crop:comparison.crop}:null,
         joint_preview:preview?{changed:preview.changed,pending:preview.pending,mode:preview.mode,no_wind:preview.noWind,gains:Object.fromEntries(preview.gains??[]),
           helpers:Object.fromEntries([...(preview.tracks??preview.gains??new Map()).keys()].map(name=>[name,renderer.boneMatrix(name)]))}:null};
       status.textContent=preview?.changed?`${time.toFixed(3)} 秒 · ${jointPreviewText(preview)} 保存与下载仍是原构建结果。${match==='draft_changed'?' 当前视角或图层草稿也尚未进入此结果。':''}`:
@@ -94,6 +144,8 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
     finally{if(token===version)document.getElementById('restore-result').disabled=false;}
   };
   document.getElementById('close-result').onclick=()=>{clear();document.getElementById('result-viewport').hidden=true;};
+  window.addEventListener('autospine:wind-view',()=>seek(time));
+  window.addEventListener('resize',()=>seek(time));
   return {seek,clear,jointPreview(value){
     const signature=JSON.stringify(value);if(signature===previewSignature)return preview;
     previewSignature=signature;previewDraft=value;refreshPreview();seek(time);return preview;

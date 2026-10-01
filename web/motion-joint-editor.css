@@ -16,6 +16,11 @@
 .joint-wind-preview{grid-column:3;grid-row:1/9;align-self:start;min-width:0;padding:12px;border:1px solid #405b70;border-radius:8px;background:#0e1b25}
 .joint-wind-preview p{font-size:14px;margin:8px 0}.joint-wind-preview canvas{display:block;width:100%;height:auto;max-height:360px;object-fit:contain;background:#0e1b25}
 .joint-wind-preview canvas[hidden]{display:none}
+.joint-wind-preview .joint-wind-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.joint-wind-pair>div{min-width:0}.joint-wind-pair strong{display:block;min-height:42px;font-size:13px;color:#c2d5e4}
+.joint-wind-preview .joint-wind-pair canvas{min-height:0;border:1px solid #395166;height:auto;max-height:none;object-fit:contain}
+.joint-wind-preview label{flex-wrap:wrap;font-size:14px}.joint-wind-preview select{max-width:100%;min-width:0}
+.joint-wind-preview [data-wind-delta]{color:#f6dfb6;min-height:44px}
 .joint-wind-interaction>button{justify-self:start}.joint-wind-interaction input[type=checkbox]{flex-shrink:0}
 .joint-eligibility{padding:12px;border:1px solid #dba965;background:#31261a;color:#f6dfb6}
 .joint-tracks{margin:12px 0 20px}.joint-tracks h3{font-size:16px;margin:0}.joint-track{display:grid;grid-template-columns:24px 150px minmax(80px,1fr) 160px;gap:10px;align-items:center;min-height:48px}

@@ -1,0 +1,125 @@
+{
+  "schema": "autospine.wind-visibility-fix-verification/v1",
+  "date": "2026-10-01",
+  "scope": "current-time keyed wind editing, calibrated secondary response and same-frame visual comparison",
+  "causes": [
+    "Keyed wind strength/direction overrode changes to the fixed base value.",
+    "Legacy external force reached the angle limit early, reducing slider differentiation.",
+    "Planar head/torso overlap clamped depth-separated artwork despite safe mesh geometry.",
+    "Raw body and joint result had different framing and no direct wind-only comparison."
+  ],
+  "response_profile": "bounded-equilibrium-v2",
+  "legacy_behavior_preserved": true,
+  "geometry_guard_retained": true,
+  "projected_overlap_policy": "diagnostic_not_physical_collision",
+  "automated_tests": {
+    "python": 72,
+    "javascript": 53,
+    "passed": true
+  },
+  "candidates": [
+    {
+      "character": "alice",
+      "parent_job_id": "motion-5187aacacf9a49838820a8a11815ba5a",
+      "job_id": "motion-dc86e21db862452aac0ade139aafc763",
+      "artifact_sha256": "ca6ea5f166e631518441e23d7c28e5e747f6dacbe937bcf1affb4fb889dde82c",
+      "wind_keys": [
+        {
+          "time": 0,
+          "strength": 45,
+          "direction": 345
+        },
+        {
+          "time": 9.933333,
+          "strength": 79,
+          "direction": 15
+        }
+      ],
+      "runtime_frames": 2181,
+      "captured_images": 70,
+      "geometry_failed_records": 0,
+      "fixed_root_error_px": 0,
+      "cloth_retained_gain": 0.5,
+      "delivery_check": "../workspace/wind-validation/alice-v2-keyed.json",
+      "preview_check": "../workspace/wind-validation/alice-v2-keyed-preview.json",
+      "max_key_error_deg": 2.0650148258027912e-14,
+      "max_vertex_error_px": 0.00006103515625
+    },
+    {
+      "character": "huiye",
+      "parent_job_id": "motion-45db86457ff44d14934c149cf5a4ecf0",
+      "job_id": "motion-4d2fde4155f744468eca86cddf25805e",
+      "artifact_sha256": "1949e0e918a8356359a5ae854da1d8fa8b01bba7ba7a905d7fc548d15f1ee22a",
+      "fixed_wind": {
+        "strength": 75,
+        "direction": 0
+      },
+      "runtime_frames": 2151,
+      "captured_images": 69,
+      "geometry_failed_records": 0,
+      "fixed_root_error_px": 0,
+      "all_region_retained_gains": 1,
+      "delivery_check": "../workspace/wind-validation/huiye-v2.json",
+      "preview_check": "../workspace/wind-validation/huiye-v2-preview.json",
+      "max_key_error_deg": 8.922029781643914e-14,
+      "max_vertex_error_px": 0.0001220703125
+    }
+  ],
+  "official_core_version": "4.3.13",
+  "core_checked_times_per_candidate": 21,
+  "seek_repeat_error_px": 0,
+  "body_channels_unchanged": true,
+  "legacy_preview_check": "../workspace/wind-validation/legacy-preview-after-fix.json",
+  "browser": {
+    "editor_url": "http://127.0.0.1:8918/motion-editor.html?joint=motion-dc86e21db862452aac0ade139aafc763#joint-editor",
+    "focus": "hair",
+    "time": 9.933333,
+    "same_frame_strength_sweep": [
+      {
+        "strength": 25,
+        "max_wind_vs_calm_displacement_px": 0.58,
+        "changed_thumbnail_pixels": 1368
+      },
+      {
+        "strength": 50,
+        "max_wind_vs_calm_displacement_px": 2.22,
+        "changed_thumbnail_pixels": 5495
+      },
+      {
+        "strength": 79,
+        "max_wind_vs_calm_displacement_px": 5.45,
+        "changed_thumbnail_pixels": 9287
+      }
+    ],
+    "thumbnail_pixels": {
+      "width": 320,
+      "height": 360,
+      "difference_threshold": 16,
+      "transparent_rgb_ignored": true
+    },
+    "checks": [
+      "current wind key updates immediately",
+      "other keys unchanged",
+      "undo and redo",
+      "draft save and restore",
+      "UI build completed",
+      "first-frame cue",
+      "equal crop and display dimensions",
+      "desktop and narrow layout"
+    ],
+    "console_errors": 0,
+    "screenshots": [
+      "../workspace/wind-validation/wind-visibility-fix-desktop.jpg",
+      "../workspace/wind-validation/wind-visibility-fix-narrow.jpg"
+    ]
+  },
+  "runtime_frames_total": 4332,
+  "captured_images_total": 139,
+  "limitations": [
+    "Projected overlap needs visual inspection.",
+    "Full physical collision and new contact evaluation are not implemented.",
+    "Existing body depth issues remain recorded.",
+    "Live parameter changes still require rebuilding before export."
+  ],
+  "visual_acceptance": "not_evaluated"
+}

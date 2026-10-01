@@ -193,6 +193,11 @@ class JointGuardTests(unittest.TestCase):
         self.assertGreaterEqual(result[0]['history'][-1]['min_area_ratio'], .55)
         self.assertGreater(result[0]['history'][0]['failed_samples'], 0)
         self.assertEqual(document['bones'], baseline['bones'])
+        fresh = deepcopy(document)
+        fresh['animations']['move']['bones']['m5-response-helper']['rotate'][1]['value'] = 1.
+        second = protect(fresh, baseline, 'move', deepcopy(records), times, poses, _points, projected_overlap='diagnostic')
+        self.assertLess(second[0]['effective_gain'], 1.)
+        self.assertGreater(second[0]['history'][0]['geometry_failed_samples'], 0)
 
 
 if __name__ == '__main__': unittest.main()

@@ -106,10 +106,12 @@ export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect
   }
   return {state,load,restoreResult,reset,refresh,build,cancel:()=>operate('cancel'),retry:()=>operate('retry'),
     change:(group,key,value)=>edit(()=>state.change(group,key,value)),
+    windParameter:(key,value,time)=>edit(()=>state.windParameter(key,value,time)),
+    windProfile:value=>edit(()=>state.windProfile(value)),
     enableWind:()=>edit(()=>state.enableWind()),
     undo:()=>edit(()=>state.undo()),redo:()=>edit(()=>state.redo()),defaults:()=>edit(()=>state.defaults()),
     key:(channel,time,values)=>edit(()=>state.key(channel,time,values)),
-    deleteKey:(channel,time)=>edit(()=>state.deleteKey(channel,time)),clearKeys:channel=>edit(()=>state.clearKeys(channel)),
+    deleteKey:(channel,time)=>edit(()=>state.deleteKey(channel,time)),clearKeys:(channel,time)=>edit(()=>state.clearKeys(channel,time)),
     anchor:(slot,point)=>edit(()=>state.anchor(slot,point)),
     targets:(group,slots)=>edit(()=>state.targets(group,slots)),
     local:(group,slot,values)=>edit(()=>state.local(group,slot,values)),

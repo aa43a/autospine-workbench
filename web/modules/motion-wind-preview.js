@@ -7,6 +7,15 @@ const same=(a,b)=>{
 };
 const chosen=(cfg,slot)=>cfg?.enabled&&(!cfg.slots?.length||cfg.slots.includes(slot));
 const local=(cfg,slot,key)=>cfg?.overrides?.[slot]?.[key]??cfg?.[key];
+export function windPreviewGain(record,report,config){
+  if(config.wind?.response_profile!=='bounded-equilibrium-v2'||report.config.wind?.response_profile==='bounded-equilibrium-v2')return record.post_solve_gain;
+  const history=report.secondary?.geometry_guard?.find(row=>row.slot===record.slot)?.history??[];
+  // Upgrade an old template only through a gain already measured to satisfy
+  // the mesh limits. This removes a projected-overlap clamp, never fabricates
+  // approval for a previously unsafe triangle or edge stretch.
+  const measured=history.find(row=>row.min_area_ratio>=.55&&row.max_area_ratio<=1.9&&row.max_edge_stretch<=1.9);
+  return measured?Math.max(record.post_solve_gain,measured.gain):record.post_solve_gain;
+}
 export function validateWindTemplate(template,report,document){
   if(template?.schema!=='autospine.wind-preview/v1'||template.skeleton_sha256!==report.skeleton_sha256||
     template.parent_skeleton_sha256!==report.parent_skeleton_sha256||template.config_sha256!==report.config_sha256)throw Error('受风预览来源不匹配，请重新载入候选。');
@@ -44,19 +53,26 @@ export function jointWindPreview(template,report,config,{noWind=false}={}){
           base=helperPose(base,bones,record.helpers,Object.fromEntries(record.helpers.map(n=>[n,solved[n]?.[i]??0])));
         const m=base[driven];return [m[4],m[5],Math.atan2(m[2],m[0])*180/Math.PI];});
       const length=bone.length??100,external=angularWind(vectors.values,poses,{axis_offset:record.wind_axis_offset,
-        response:local(cfg,slot,'wind_response')??1,length});
+        response:local(cfg,slot,'wind_response')??1,length,profile:config.wind.response_profile,
+        stiffness:local(cfg,slot,'stiffness'),max_angle:local(cfg,slot,'max_angle')});
       const values=springSolve(times,poses,{stiffness:local(cfg,slot,'stiffness'),damping:local(cfg,slot,'damping'),
         strength:local(cfg,slot,'strength')*((helper.endsWith('-lower')||helper.endsWith('_lower')) ? .5 : 1),
         max_angle:local(cfg,slot,'max_angle'),length,loop:config.loop,external,compatible:vectors.compatible});
       const baked=bakeSpring(times,values);solved[helper]=times.map(t=>lookup(baked.times,baked.values,t));
-      const gain=chosen(cfg,slot)?record.post_solve_gain:0;
+      const gain=chosen(cfg,slot)?windPreviewGain(record,report,config):0;
       tracks.set(helper,{times:baked.times,values:baked.values.map(v=>v*gain)});
     }
   }
   const changed=noWind||!same(report.config.wind,config.wind)||groups.some(g=>!same(report.config[g],config[g]))||report.config.loop!==config.loop;
   if(changed)pending.add('新参数的网格、接触与 Runtime 验证');
   if(config.loop&&!vectors.compatible)pending.add('风场首尾方向或强度不连续');
-  return {tracks,changed,pending:[...pending],available:tracks.size>0,mode:'wind_solver',noWind,
+  return {tracks,changed,pending:[...pending],available:tracks.size>0,mode:'wind_solver',noWind,initial_from_rest:!config.loop,
+    regions:regions.map(record=>{
+      const guard=report.secondary?.geometry_guard?.find(row=>row.slot===record.slot),measured=guard?.history?.at(-1);
+      return {slot:record.slot,kind:record.region_kind,
+        gain:chosen(config[record.region_kind],record.slot)?windPreviewGain(record,report,config):0,
+        built_projected_overlap:guard?.collision?.policy==='diagnostic'&&measured?.collision_failed_samples>0};
+    }),
     reason:tracks.size?'':'当前候选没有可用的受风骨骼。'};
 }
 export function windOffsets(preview,time){
