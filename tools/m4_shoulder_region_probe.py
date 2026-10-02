@@ -14,7 +14,7 @@ from autospine_workbench.targets.character43.affine_pose import sample,matrices
 from autospine_workbench.targets.character43.skirt_contact import source_image
 
 
-def run(source,output,times):
+def run(source,output,times,shape_objective=False):
     receipt=json.loads((source/'report.json').read_bytes());identity=receipt['candidate_bundle_sha256']
     files=AnimatedStore(source/'isolated-store').read(identity);doc,rows=contexts(files)
     rest=matrices(dict(doc,animations={'setup':{}}),'setup',0)['chest'];R=np.array([[rest[0],rest[1]],[rest[2],rest[3]]]);rows_out=[]
@@ -50,7 +50,7 @@ def run(source,output,times):
                 center=A@(np.array(disk['center'])-rest[4:])+current[4:]
                 regions.append(dict(vertex=v,center=center.tolist(),inverse=np.linalg.inv(A).tolist(),radius=disk['radius']))
                 seed[v]=center.tolist()
-            points,report=refine(row['points'],row['triangles'],fixed,free,world,seed,context['budget_px'],regions=regions)
+            points,report=refine(row['points'],row['triangles'],fixed,free,world,seed,context['budget_px'],regions=regions,shape_objective=shape_objective)
             fixed_error=max((float(np.linalg.norm(np.array(p)-q)) for i,(p,q) in enumerate(zip(points,fixed)) if i not in free),default=0.)
             rows_out.append(dict(slot=row['slot'],time=t,context=context,support=support,retained_fixed_pins=unsupported,fixed_error_px=fixed_error,points=points,**report))
             print(json.dumps({k:v for k,v in rows_out[-1].items() if k not in ('points','context','support')}),flush=True)
@@ -60,4 +60,5 @@ def run(source,output,times):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('source',type=Path);p.add_argument('output',type=Path)
-    p.add_argument('--times',type=float,nargs='+',required=True);a=p.parse_args();run(a.source,a.output,a.times)
+    p.add_argument('--times',type=float,nargs='+',required=True);p.add_argument('--shape-objective',action='store_true')
+    a=p.parse_args();run(a.source,a.output,a.times,a.shape_objective)

@@ -3,7 +3,7 @@ import math
 from ...asset.planning.component_local_solver import metrics
 
 
-def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None,region_margin=1e-5):
+def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None,region_margin=1e-5,shape_objective=False):
     import numpy as np
     from scipy.optimize import minimize
     arrays=[np.asarray(p,dtype=float) for p in (setup,fixed,source,seed)]
@@ -47,7 +47,13 @@ def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None,region_m
         contact=[1-region_margin-np.linalg.norm(np.asarray(z['inverse'])@(p[z['vertex']]-z['center']))/z['radius'] for z in regions]
         return np.concatenate((r[~fixed_tri]-.505,1.995-r[~fixed_tri],1.995-s[~fixed_edges],
                                1-np.linalg.norm(p[free]-origin[free],axis=1)/budget,contact))
-    fit=minimize(lambda x:float(x@x),np.zeros(2*len(free)),jac=lambda x:2*x,
+    objective=lambda x:(float(x@x),2*x)
+    if shape_objective:
+        from .material_edge_strain import energy
+        def objective(x):
+            loss,gradient=energy(unpack(x),edges,lengths)
+            return loss+.001*float(np.mean(x*x)),(scale*gradient[free]).ravel()+.002*x/len(x)
+    fit=minimize(objective,np.zeros(2*len(free)),jac=True,
                  method='SLSQP',constraints=[dict(type='ineq',fun=constraints)],
                  options=dict(maxiter=200,ftol=1e-10))
     # Only the new region experiment tolerates numerical error in the stricter
@@ -60,6 +66,7 @@ def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None,region_m
     contact_ratios=[float(np.linalg.norm(np.asarray(z['inverse'])@(result[z['vertex']]-z['center']))/z['radius']) for z in regions]
     if regions:valid=valid and max(contact_ratios)<=1 and float(np.linalg.norm(result-origin,axis=1).max())<=budget
     report.update(status='feasible_candidate' if valid else 'no_feasible_candidate_found',
+                  objective_profile='source-edge-strain-v1' if shape_objective else 'seed-displacement-v1',
                   contact_region_count=len(regions),
                   maximum_contact_region_ratio=max(contact_ratios,default=None),
                   optimizer_success=bool(fit.success),iterations=int(fit.nit),geometry=quality,
